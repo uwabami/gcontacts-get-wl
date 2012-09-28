@@ -18,6 +18,13 @@
 ;;
 ;;** BACKUP YOUR Wanderlust Address BEFORE TESTING THIS FUNCTION **
 ;;
+;;
+;; Acknowledgements: This file is based on `google-contacts-mew'.
+;;
+;; I deeply thanks to Takashi Masuda
+;;   https://github.com/masutaka/google-contacts-mew/
+;;
+;;
 ;; Code:
 ;;
 (require 'google-contacts)
