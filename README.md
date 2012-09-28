@@ -12,7 +12,7 @@ Install/Usage
 
 * Put following code into your wanderlust init file(`~/.wl`):
 
-         ``` lisp
+         ```lisp
          (require 'google-contacts-wl)
          ;; Optional
          ;; (setq google-contacts-email "Your GMail Address")
