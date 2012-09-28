@@ -34,4 +34,4 @@ License
 Special Thanks to:
 ==================
 
-  * Takashi Masuda ([matsutaka](https://github.com/masutaka/)): [google-contacts-mew](https://github.com/masutaka/google-contacts-mew/)
+  * Takashi Masuda ([masutaka](https://github.com/masutaka/)): [google-contacts-mew](https://github.com/masutaka/google-contacts-mew/)
