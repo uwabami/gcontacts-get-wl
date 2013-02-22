@@ -68,7 +68,11 @@ The format of Address file is as follows:
                     (while emails
                       (insert (concat (car emails)) "\t")
                       (setq emails (cdr emails))
-                      (if name (insert "\t\"" name "\"\t\"" name "\""))
+                      (cond
+                       ((and name shortname)
+                        (insert "\t\"" shortname "\"\t\"" name "\""))
+                       (name
+                        (insert "\t\"" name "\"\t\"" name "\"")))
                       (insert "\n"))
                     )
                   ))
