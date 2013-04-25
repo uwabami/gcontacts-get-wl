@@ -8,7 +8,8 @@ Install/Usage
 =============
 
 * Put `google-contacts.el` and `google-contacts-wl.el` into load-path'ed
-  direcotry, and byte-compile it if desired. Or use this [el-get recipe](https://github.com/uwabami/google-contacts-wl/blob/master/google-contacts-wl.rcp)
+  direcotry, and byte-compile it if desired. Or use this
+  [el-get recipe](https://github.com/uwabami/google-contacts-wl/blob/master/google-contacts-wl.rcp)
 
 * Put following code into your wanderlust init file(`~/.wl`):
 
@@ -17,7 +18,7 @@ Install/Usage
          ;; (setq google-contacts-email "Your GMail Address")
          ;; (setq google-contacts-password "Your GMail Password")
 
-* run `M-x google-contacts-wl`         
+* run `M-x google-contacts-wl`
 
 Customize
 =========
@@ -27,10 +28,21 @@ Customize
 License
 =======
 
-  * google-contacts.el: Public domain. please see [original file](https://github.com/uwabami/google-contacts-wl/blob/master/google-contacts.el) in detail
-  * google-contacts-wl.el: WTFPL. see [this file](https://github.com/uwabami/google-contacts-wl/blob/master/WTFPL)
+  * google-contacts-wl.el: WTFPL. @see
+    [this file](https://github.com/uwabami/google-contacts-wl/blob/master/WTFPL)
+    * Original `google-contacts.el' and `google-contacts-mew.el' are
+      Public Domain. Thus I set `google-concacts-wl.el' is WTFPL.
+
+ToDo
+====
+
+  * Support OAuth.
 
 Special Thanks to:
 ==================
 
-  * Takashi Masuda ([masutaka](https://github.com/masutaka/)): [google-contacts-mew](https://github.com/masutaka/google-contacts-mew/)
+  * Øÿyvind Stegard
+     ([ Øÿyvind Stegard](https://github.com/oyvindstegard)):
+     [emacs-misc](https://github.com/oyvindstegard/emacs-misc/)
+  * Takashi Masuda ([masutaka](https://github.com/masutaka/)):
+    [google-contacts-mew](https://github.com/masutaka/google-contacts-mew/)
