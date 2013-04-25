@@ -7,7 +7,7 @@ file. Please backup before use this program.
 Install/Usage
 =============
 
-* Put `google-contacts.el` and `google-contacts-wl.el` into load-path'ed
+* Put `google-contacts.el` and `google-contacts-wl.el` into load-path
   direcotry, and byte-compile it if desired. Or use this
   [el-get recipe](https://github.com/uwabami/google-contacts-wl/blob/master/google-contacts-wl.rcp)
 
@@ -30,8 +30,8 @@ License
 
   * google-contacts-wl.el: WTFPL. @see
     [this file](https://github.com/uwabami/google-contacts-wl/blob/master/WTFPL)
-    * Original `google-contacts.el' and `google-contacts-mew.el' are
-      Public Domain. Thus I set `google-concacts-wl.el' is WTFPL.
+    * Original `google-contacts.el` and `google-contacts-mew.el` are
+      Public Domain. Thus I set `google-concacts-wl.el` is under WTFPL.
 
 ToDo
 ====
