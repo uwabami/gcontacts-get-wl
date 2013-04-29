@@ -7,7 +7,7 @@ file. Please backup before use this program.
 Install/Usage
 =============
 
-* Put `google-contacts.el` and `google-contacts-wl.el` into load-path
+* Put `google-contacts-wl.el` into load-path
   direcotry, and byte-compile it if desired. Or use this
   [el-get recipe](https://github.com/uwabami/google-contacts-wl/blob/master/google-contacts-wl.rcp)
 
