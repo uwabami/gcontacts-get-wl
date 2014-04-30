@@ -1,7 +1,8 @@
 ;; google-contacts-wl.el
-;; -*- coding: utf-8 -*-
+;; -*- mode:emacs-lisp; coding: utf-8 -*-
 ;;
-;; Author: 2013- Youhei SASAKI
+;; Author: Youhei SASAKI <uwabami@gfd-dennou.org>
+;; Version: 0.0.2
 ;; License: WTFPL
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -311,3 +312,5 @@ The format of Address file is as follows:
   )
 
 (provide 'google-contacts-wl)
+
+;; google-contacts-wl.el ends here
