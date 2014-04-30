@@ -1,9 +1,14 @@
-;; google-contacts-wl.el
+;; google-contacts-wl.el --- 1way converter GoogleContacts to Wanderlust Address
 ;; -*- mode:emacs-lisp; coding: utf-8 -*-
 ;;
+;; Copyright(C) 2012-2014 Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Author: Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Version: 0.0.2
+;; Package-Requires: ((google-contacts))
+;; Keywords:
 ;; License: WTFPL
+;;
+;;; Commentary:
 ;;
 ;; This file is NOT part of GNU Emacs.
 ;;
