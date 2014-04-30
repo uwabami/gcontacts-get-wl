@@ -4,7 +4,7 @@
 ;; Copyright(C) 2012-2014 Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Author: Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Version: 0.0.2
-;; Package-Requires: ((google-contacts))
+;; Package-Requires: ((google-contacts "0.0"))
 ;; Keywords:
 ;; License: WTFPL
 ;;
