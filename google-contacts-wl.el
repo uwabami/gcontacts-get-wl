@@ -1,4 +1,4 @@
-;; google-contacts-wl.el --- 1way converter GoogleContacts to Wanderlust Address
+;;; google-contacts-wl.el --- 1way converter GoogleContacts to Wanderlust Address
 ;; -*- mode:emacs-lisp; coding: utf-8 -*-
 ;;
 ;; Copyright(C) 2012-2014 Youhei SASAKI <uwabami@gfd-dennou.org>
