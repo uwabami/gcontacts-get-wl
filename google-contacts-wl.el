@@ -311,6 +311,7 @@ The format of Address file is as follows:
   (set-file-modes (expand-file-name wl-address-file) 384)
   )
 
-(provide 'google-contacts-wl)
+;;;###autoload
 
+(provide 'google-contacts-wl)
 ;; google-contacts-wl.el ends here
