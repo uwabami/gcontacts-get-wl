@@ -37,7 +37,7 @@
 ;; I deeply thanks to Takashi Masuda
 ;;   https://github.com/masutaka/google-contacts-mew/
 ;;
-;; Code:
+;;; Code:
 ;;
 (require 'auth-source)
 (require 'json)
@@ -316,7 +316,6 @@ The format of Address file is as follows:
   (set-file-modes (expand-file-name wl-address-file) 384)
   )
 
-;;;###autoload
 
 (provide 'google-contacts-wl)
-;; google-contacts-wl.el ends here
+;;; google-contacts-wl.el ends here
