@@ -2,4 +2,5 @@
        :description "Create/Update/Import Wanderlust Address from Google Contacts"
        :type github
        :pkgname "uwabami/google-contacts-wl"
+       :depends (google-contacts)
        )
