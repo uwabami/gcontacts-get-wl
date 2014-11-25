@@ -375,15 +375,15 @@ The format of Address file is as follows:
             (insert (format "%s\t" email))
             (cond
              ((not fullname)
-              (insert (format "%s\t%s\n" email email)))
+              (insert (format "\"%s\"\t\"%s\"\n" email email)))
              ((and fullname nickname)
-              (insert (format "%s\t%s\n" nickname fullname)))
+              (insert (format "\"%s\"\t\"%s\"\n" nickname fullname)))
              (t
-              (insert (format "%s\t%s\n" fullname fullname)))))))
+              (insert (format "\"%s\"\t\"%s\"\n" fullname fullname)))))))
       (write-region
        (point-min) (point-max)
        (expand-file-name wl-address-file 0)))
     ))
 
-(provide 'gcontacts-wl)
+(provide 'gcontacts-get-wl)
 ;;; gcontacts-wl.el ends here
