@@ -1,0 +1,5 @@
+(:name gcontacts-get-wl
+       :description "1way converter from Google Contacts to Wanderlust Address file"
+       :type github
+       :pkgname "uwabami/gcontacts-get-wl"
+       )
