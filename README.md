@@ -28,7 +28,7 @@ License
 -------
 
   * google-contacts-wl.el: WTFPL. @see
-    [this file](https://github.com/uwabami/google-contacts-wl/blob/master/WTFPL)
+    [this file](https://github.com/uwabami/google-contacts-wl/blob/master/COPYRIGHT)
     * Original `gcontacts-get.el` and `google-contacts-mew.el` are
       Public Domain. Thus I set `google-concacts-wl.el` is under WTFPL.
 
