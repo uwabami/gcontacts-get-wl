@@ -1,9 +1,11 @@
-;;; gcontacts-wl.el --- 1way converter GoogleContacts to Wanderlust Address
+;;; gcontacts-wl.el --- 1-way converter GoogleContacts to Wanderlust Address file
 ;; -*- mode:emacs-lisp; coding: utf-8 -*-
 ;;
 ;; Copyright(C) 2012-2014 Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Author: Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Version: 0.0.4
+;; Package-Requires: ((json "1.4") (oauth2 nil))
+;; Keywords: net, mail
 ;; License: MIT/X11
 ;;
 ;;; Commentary:
@@ -345,6 +347,7 @@ calls to this function."
               (setq google-contacts-alist (cons contact google-contacts-alist)))))
     google-contacts-alist))
 
+;;;###autoload
 (defun gcontacts-update-wl-address ()
   "Overwrite `wl-address-file' from Google Contacts.
 
