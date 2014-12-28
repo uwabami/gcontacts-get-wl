@@ -46,9 +46,6 @@
 (eval-when-compile
   (require 'cl))
 
-(defvar wl-address-file "~/.Address"
-  "Wanderlust Address File")
-
 (defvar gcontacts-get-email nil
   "GMail address. ")
 
