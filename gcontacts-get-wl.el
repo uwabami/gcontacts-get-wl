@@ -4,7 +4,7 @@
 ;; Copyright(C) 2012-2014 Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Author: Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Version: 0.0.4
-;; Package-Requires: ((json "1.4") (oauth2 nil))
+;; Package-Requires: ((json "1.4") (oauth2 "0.10"))
 ;; Keywords: net, mail
 ;; License: MIT/X11
 ;;
