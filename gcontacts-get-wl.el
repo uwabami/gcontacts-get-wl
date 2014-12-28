@@ -47,6 +47,7 @@
 (require 'auth-source)
 (require 'json)
 (require 'url)
+(require 'oauth2)
 (eval-when-compile
   (require 'cl))
 
