@@ -4,7 +4,7 @@
 ;; Copyright(C) 2012-2014 Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Author: Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Version: 0.0.4
-;; Package-Requires: ((json "1.4") (oauth2 "0.10"))
+;; Package-Requires: ((json "1.4"))
 ;; Keywords: net, mail
 ;; License: MIT/X11
 ;;
@@ -27,10 +27,6 @@
 ;;    ;; (setq gcontacts-get-passwd "Your GMail Password")
 ;;    ;; Optional - use auth-source
 ;;    ;; (setq gcontacts-get-passwd-use-auth-source "somewhere")
-;;    ;; Optional - use Oauth2  (Required package `oauth2')
-;;    ;; (setq gcontacts-get-use-oauth2 t)
-;;    ;; (setq gcontacts-get-oauth-client-ID "Your Client ID")
-;;    ;; (setq gcontacts-get-oauth-client-secret "Your Client Secret")
 ;;
 ;; Usage:
 ;;    M-x gcontacts-update-wl-address
@@ -47,36 +43,18 @@
 (require 'auth-source)
 (require 'json)
 (require 'url)
-(require 'oauth2)
 (eval-when-compile
   (require 'cl))
 
-;; OAuth2 constants
-(defconst gcontacts-get-oauth-client-ID nil)
-(defconst gcontacts-get-oauth-client-secret nil)
-(defconst gcontacts-get-oauth-scope-uris "https://www.google.com/m8/feeds/")
-(defconst gcontacts-get-oauth-redirect-uri "urn:ietf:wg:oauth:2.0:oob")
-(defconst gcontacts-get-oauth-auth-uri "https://accounts.google.com/o/oauth2/auth")
-(defconst gcontacts-get-oauth-token-uri "https://accounts.google.com/o/oauth2/token")
-
 (defvar gcontacts-get-email nil
-  "GMail address. Not required when using oauth2 or auth-source.")
+  "GMail address. ")
 
 (defvar gcontacts-get-passwd nil
-  "GMail password. Not required when using oauth2 or auth-source.")
+  "GMail password. ")
 
 (defvar gcontacts-get-passwd-use-auth-source nil
   "If t, then look in default auth source for GMail credentials.
 Entry must have host 'www.google.com' and port 443.")
-
-(defvar gcontacts-get-use-oauth2 nil
-  "If t, then use OAuth2 to authenticate and authorize Google API access,
-instead of (now deprecated) Google \"ClientLogin\" method. When
-using this method, a browser window will be opened, and you will
-be required to authorize and allow access through Google's own
-web pages before this library can get your contacts.
-
-Requires package `oauth2'.")
 
 (defvar gcontacts-get-max-results 1000
   "Maximum number of contacts to fetch from Google. Should be
@@ -99,29 +77,14 @@ configured, optionally adding EXTRA-HEADERS to the request and
 with timeout TIMEOUT (seconds). The variable SESSION should
 satisfy `consp' and will be used to store session state between
 calls to this function."
-  (if gcontacts-get-use-oauth2
-      (progn
-        (require 'oauth2)
-        (let ((token (or (car session)
-                         (setcar session
-                                 (oauth2-auth-and-store gcontacts-get-oauth-auth-uri
-                                                        gcontacts-get-oauth-token-uri
-                                                        gcontacts-get-oauth-scope-uris
-                                                        gcontacts-get-oauth-client-ID
-                                                        gcontacts-get-oauth-client-secret)))))
-          (if (integerp timeout)
-              (with-timeout (timeout (error (concat "gcontacts-get: timed out requesting URL: " url)))
-                (oauth2-url-retrieve-synchronously token url nil nil extra-headers))
-            (oauth2-url-retrieve-synchronously token url nil nil extra-headers))))
-    ;; Use old ClientLogin method instead
-    (let* ((token (or (car session) (setcar session (gcontacts-get-clientlogin))))
-           (url-request-extra-headers (cons `("Authorization" . ,(concat "GoogleLogin auth=" token))
-                                            extra-headers)))
-      (if (integerp timeout)
-          (with-timeout (timeout (error (concat "gcontacts-get: timed out requesting URL: " url)))
-            (url-retrieve-synchronously url))
-        (url-retrieve-synchronously url))
-      )))
+  (let* ((token (or (car session) (setcar session (gcontacts-get-clientlogin))))
+	 (url-request-extra-headers (cons `("Authorization" . ,(concat "GoogleLogin auth=" token))
+					  extra-headers)))
+    (if (integerp timeout)
+	(with-timeout (timeout (error (concat "gcontacts-get: timed out requesting URL: " url)))
+	  (url-retrieve-synchronously url))
+      (url-retrieve-synchronously url))
+    ))
 
 (defun gcontacts-get-credentials ()
   (let (email passwd)
@@ -224,19 +187,19 @@ calls to this function."
    (t (gcontacts-get-intersection-ignore-case (cdr list1) list2))))
 
 ;; Mappings from Google location type schema to symbol (used for addresses and phone numbers)
-(setq gcontacts-get-location-schema-mapping
-      '(("http://schemas.google.com/g/2005#main" . main)
-        ("http://schemas.google.com/g/2005#work" . work)
-        ("http://schemas.google.com/g/2005#home" . home)
-        ("http://schemas.google.com/g/2005#mobile" . mobile)
-        ("http://schemas.google.com/g/2005#other" . other)))
+(defconst gcontacts-get-location-schema-mapping
+  '(("http://schemas.google.com/g/2005#main" . main)
+    ("http://schemas.google.com/g/2005#work" . work)
+    ("http://schemas.google.com/g/2005#home" . home)
+    ("http://schemas.google.com/g/2005#mobile" . mobile )
+   ("http://schemas.google.com/g/2005#other" . other)))
 
 ;; Get plain phone number structure from phone-node in JSON structure
 (defun gcontacts-get-get-phone-numbers(phone-node) ; expect vector of alists as cdr
   (when phone-node
     (map 'list
-         (lambda(phone-number)
-           (let ((number (cdr (assoc '$t phone-number)))
+         (lambda(phone-number) 
+          (let ((number (cdr (assoc '$t phone-number)))
                  (location (cdr (assoc-string (cdr (assoc 'rel phone-number))
                                           gcontacts-get-location-schema-mapping))))
              (when (not location) (setq location 'other))
