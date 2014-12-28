@@ -2,4 +2,5 @@
        :description "1way converter from Google Contacts to Wanderlust Address file"
        :type github
        :pkgname "uwabami/gcontacts-get-wl"
+       :depends (oauth2)
        )
