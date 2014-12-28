@@ -46,6 +46,9 @@
 (eval-when-compile
   (require 'cl))
 
+(defvar wl-address-file "~/.Address"
+  "Wanderlust Address File")
+
 (defvar gcontacts-get-email nil
   "GMail address. ")
 
@@ -198,7 +201,7 @@ calls to this function."
 (defun gcontacts-get-get-phone-numbers(phone-node) ; expect vector of alists as cdr
   (when phone-node
     (map 'list
-         (lambda(phone-number) 
+         (lambda(phone-number)
           (let ((number (cdr (assoc '$t phone-number)))
                  (location (cdr (assoc-string (cdr (assoc 'rel phone-number))
                                           gcontacts-get-location-schema-mapping))))
