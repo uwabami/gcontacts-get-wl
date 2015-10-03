@@ -1,12 +1,12 @@
 ;;; gcontacts-wl.el --- 1-way converter GoogleContacts to Wanderlust Address file
 ;; -*- mode:emacs-lisp; coding: utf-8 -*-
 ;;
-;; Copyright(C) 2012-2014 Youhei SASAKI <uwabami@gfd-dennou.org>
+;; Copyright(C) 2012-2015 Youhei SASAKI <uwabami@gfd-dennou.org>
 ;; Author: Youhei SASAKI <uwabami@gfd-dennou.org>
-;; Version: 0.0.4
-;; Package-Requires: ((json "1.4"))
+;; Version: 0.0.6
+;; Package-Requires: ((json "1.4") (oauth2 "0.10"))
 ;; Keywords: net, mail
-;; License: MIT/X11
+;; License: WTFPL
 ;;
 ;;; Commentary:
 ;;
@@ -22,11 +22,8 @@
 ;;   desired. And put the following expression into your ~/.wl
 ;;
 ;;    (require 'gcontacts-get-wl)
-;;    ;; Optional - application login
-;;    ;; (setq gcontacts-get-email "Your GMail Address")
-;;    ;; (setq gcontacts-get-passwd "Your GMail Password")
-;;    ;; Optional - use auth-source
-;;    ;; (setq gcontacts-get-passwd-use-auth-source "somewhere")
+;;    (setq gcontacts-get-wl-oauth-client-ID "Your Client ID"
+;;          gcontacts-get-wl-oauth-client-secret "Your Client Secret")
 ;;
 ;; Usage:
 ;;    M-x gcontacts-update-wl-address
@@ -40,27 +37,23 @@
 ;;
 ;;; Code:
 ;;
+
 (require 'auth-source)
 (require 'json)
 (require 'url)
+(require 'oauth2)
 (eval-when-compile
   (require 'cl))
 
-(defvar gcontacts-get-email nil
-  "GMail address. ")
-
-(defvar gcontacts-get-passwd nil
-  "GMail password. ")
-
-(defvar gcontacts-get-passwd-use-auth-source nil
-  "If t, then look in default auth source for GMail credentials.
-Entry must have host 'www.google.com' and port 443.")
-
-(defvar gcontacts-get-max-results 1000
-  "Maximum number of contacts to fetch from Google. Should be
-some integer value higher than your total number of contacts.")
-
-(defvar gcontacts-get-system-group-names
+;; OAuth2 constants
+(defvar gcontacts-get-wl-oauth-client-ID nil
+  "Set your oauth client ID")
+(defvar gcontacts-get-wl-oauth-client-secret nil
+  "Set your oauth client Secret")
+(defvar gcontacts-get-wl-max-results 1000
+  "Maximum number of contacts to fetch from Google.
+   Should be some integer value higher than your total number of contacts.")
+(defvar gcontacts-get-wl-system-group-names
   '((friends . "Friends")
     (coworkers . "Coworkers")
     (family . "Family"))
@@ -71,61 +64,36 @@ some integer value higher than your total number of contacts.")
 
 ;; End of user variables.
 
-(defun gcontacts-get-url-retrieve (url session &optional extra-headers timeout)
+(defconst gcontacts-get-wl-oauth-scope-uris "https://www.google.com/m8/feeds/")
+(defconst gcontacts-get-wl-oauth-redirect-uri "urn:ietf:wg:oauth:2.0:oob")
+(defconst gcontacts-get-wl-oauth-auth-uri "https://accounts.google.com/o/oauth2/auth")
+(defconst gcontacts-get-wl-oauth-token-uri "https://accounts.google.com/o/oauth2/token")
+
+(defun gcontacts-get-wl-url-retrieve (url session &optional extra-headers timeout)
   "Retrieves URL using whatever authentication that is
 configured, optionally adding EXTRA-HEADERS to the request and
 with timeout TIMEOUT (seconds). The variable SESSION should
 satisfy `consp' and will be used to store session state between
 calls to this function."
-  (let* ((token (or (car session) (setcar session (gcontacts-get-clientlogin))))
-	 (url-request-extra-headers (cons `("Authorization" . ,(concat "GoogleLogin auth=" token))
-					  extra-headers)))
-    (if (integerp timeout)
-	(with-timeout (timeout (error (concat "gcontacts-get: timed out requesting URL: " url)))
-	  (url-retrieve-synchronously url))
-      (url-retrieve-synchronously url))
-    ))
+  (progn
+    (let ((token (or (car session)
+                     (setcar session
+                             (oauth2-auth-and-store gcontacts-get-wl-oauth-auth-uri
+                                                    gcontacts-get-wl-oauth-token-uri
+                                                    gcontacts-get-wl-oauth-scope-uris
+                                                    gcontacts-get-wl-oauth-client-ID
+                                                    gcontacts-get-wl-oauth-client-secret)))))
+      (if (integerp timeout)
+          (with-timeout (timeout (error (concat "gcontacts-get: timed out requesting URL: " url)))
+            (oauth2-url-retrieve-synchronously token url nil nil extra-headers))
+        (oauth2-url-retrieve-synchronously token url nil nil extra-headers)))))
 
-(defun gcontacts-get-credentials ()
-  (let (email passwd)
-    (if gcontacts-get-passwd-use-auth-source
-        (let ((entry (nth 0 (auth-source-search :host "www.google.com"
-                                                :port 443
-                                                :user gcontacts-get-email
-                                                :max 1))))
-          (when (and entry (functionp (plist-get entry :secret)))
-            (setq email (plist-get entry :user)
-                  passwd (funcall (plist-get entry :secret)))))
-      (setq email gcontacts-get-email passwd gcontacts-get-passwd))
-    (if (and email passwd)
-        (cons email passwd)
-      (error "Username[/password] not set or not found in auth source for host:port 'www.google.com:443'."))))
-
-(defun gcontacts-get-clientlogin ()
-  "Login to Google contacts service, obtain auth cookie which is returned as a string."
-  (let* ((creds (gcontacts-get-credentials))
-         (email-encoded (url-hexify-string (car creds)))
-         (passwd-encoded (url-hexify-string (cdr creds)))
-         (url-request-method "POST")
-         (url-request-extra-headers '(("Content-type" . "application/x-www-form-urlencoded")))
-         (url-request-data (concat "Email=" email-encoded "&Passwd=" passwd-encoded "&service=cp&source=Emacs"))
-         auth-cookie)
-    (with-current-buffer
-        (with-timeout (20 (error "gcontacts-get: ClientLogin authentication took too long, aborting"))
-          (url-retrieve-synchronously "https://www.google.com/accounts/ClientLogin"))
-      (goto-char (point-min))
-      (re-search-forward "^Auth=\\(.*\\)" nil t)
-      (setq auth-cookie (match-string-no-properties 1))
-      (set-buffer-modified-p nil)
-      (kill-buffer (current-buffer)))
-    auth-cookie))
-
-(defun gcontacts-get-all-as-json (session)
+(defun gcontacts-get-wl-all-as-json (session)
   "Fetch all contacts from Google and return as a parsed JSON object (Lisp structure)"
   (let (json)
     (with-current-buffer
-        (gcontacts-get-url-retrieve
-         (format "https://www.google.com/m8/feeds/contacts/default/full?alt=json&max-results=%d" gcontacts-get-max-results) session '(("GData-Version" . "3.0")) 20) ;; Use GData version 3 to get nick-names
+        (gcontacts-get-wl-url-retrieve
+         (format "https://www.google.com/m8/feeds/contacts/default/full?alt=json&max-results=%d" gcontacts-get-wl-max-results) session '(("GData-Version" . "3.0")) 20) ;; Use GData version 3 to get nick-names
       (declare (special url-http-end-of-headers))
       (set-buffer-multibyte t)
       (decode-coding-region (1+ url-http-end-of-headers) (point-max) 'utf-8)
@@ -135,11 +103,11 @@ calls to this function."
       (kill-buffer (current-buffer)))
     json))
 
-(defun gcontacts-get-groups (session)
+(defun gcontacts-get-wl-groups (session)
   (let (json)
     (with-current-buffer
-        (gcontacts-get-url-retrieve
-         (format "https://www.google.com/m8/feeds/groups/default/full?alt=json&max-results=%d" gcontacts-get-max-results) session '(("GData-Version" . "2.0")) 20) ;; Use GData version 2.0 to get system groups.                                                                    ;; They aren't returned with version 3.0, for some unknown reason.
+        (gcontacts-get-wl-url-retrieve
+         (format "https://www.google.com/m8/feeds/groups/default/full?alt=json&max-results=%d" gcontacts-get-wl-max-results) session '(("GData-Version" . "2.0")) 20) ;; Use GData version 2.0 to get system groups.                                                                    ;; They aren't returned with version 3.0, for some unknown reason.
       (declare (special url-http-end-of-headers))
       (set-buffer-multibyte t)
       (decode-coding-region (1+ url-http-end-of-headers) (point-max) 'utf-8)
@@ -162,11 +130,11 @@ calls to this function."
                  ((string-match "^System Group: My Contacts" title)
                   (setq title nil))
                  ((string-match "^System Group: Friends" title)
-                  (setq title (cdr (assoc 'friends gcontacts-get-system-group-names))))
+                  (setq title (cdr (assoc 'friends gcontacts-get-wl-system-group-names))))
                  ((string-match "^System Group: Family" title)
-                  (setq title (cdr (assoc 'family gcontacts-get-system-group-names))))
+                  (setq title (cdr (assoc 'family gcontacts-get-wl-system-group-names))))
                  ((string-match "^System Group: Coworkers" title)
-                  (setq title (cdr (assoc 'coworkers gcontacts-get-system-group-names)))))
+                  (setq title (cdr (assoc 'coworkers gcontacts-get-wl-system-group-names)))))
                )
               (when title
                 (setq groups-alist (cons (cons id title) groups-alist)))
@@ -174,39 +142,39 @@ calls to this function."
             )
       groups-alist)))
 
-(defun gcontacts-get-normalize-whitespace(s)
+(defun gcontacts-get-wl-normalize-whitespace(s)
   (and s (replace-regexp-in-string "^ \\| $" "" (replace-regexp-in-string "[ \t]+" " " s))))
 
 ;; Used for finding common email address(es) between two sets/bags in contact
 ;; matching between Google contacts and BBDB.
-(defun gcontacts-get-intersection-ignore-case(list1 list2)
+(defun gcontacts-get-wl-intersection-ignore-case(list1 list2)
   (cond
    ((not list1) nil)
    ((member-ignore-case (car list1) list2)
-    (cons (car list1) (gcontacts-get-intersection-ignore-case (cdr list1) list2)))
-   (t (gcontacts-get-intersection-ignore-case (cdr list1) list2))))
+    (cons (car list1) (gcontacts-get-wl-intersection-ignore-case (cdr list1) list2)))
+   (t (gcontacts-get-wl-intersection-ignore-case (cdr list1) list2))))
 
 ;; Mappings from Google location type schema to symbol (used for addresses and phone numbers)
-(defconst gcontacts-get-location-schema-mapping
-  '(("http://schemas.google.com/g/2005#main" . main)
-    ("http://schemas.google.com/g/2005#work" . work)
-    ("http://schemas.google.com/g/2005#home" . home)
-    ("http://schemas.google.com/g/2005#mobile" . mobile )
-   ("http://schemas.google.com/g/2005#other" . other)))
+(defconst gcontacts-get-wl-location-schema-mapping
+      '(("http://schemas.google.com/g/2005#main" . main)
+        ("http://schemas.google.com/g/2005#work" . work)
+        ("http://schemas.google.com/g/2005#home" . home)
+        ("http://schemas.google.com/g/2005#mobile" . mobile)
+        ("http://schemas.google.com/g/2005#other" . other)))
 
 ;; Get plain phone number structure from phone-node in JSON structure
-(defun gcontacts-get-get-phone-numbers(phone-node) ; expect vector of alists as cdr
+(defun gcontacts-get-wl-get-phone-numbers(phone-node) ; expect vector of alists as cdr
   (when phone-node
     (map 'list
          (lambda(phone-number)
-          (let ((number (cdr (assoc '$t phone-number)))
+           (let ((number (cdr (assoc '$t phone-number)))
                  (location (cdr (assoc-string (cdr (assoc 'rel phone-number))
-                                          gcontacts-get-location-schema-mapping))))
+                                          gcontacts-get-wl-location-schema-mapping))))
              (when (not location) (setq location 'other))
              (cons location number)))
          (cdr phone-node))))
 
-(defun gcontacts-get-get-websites(website-node) ; expect vector of alists as cdr
+(defun gcontacts-get-wl-get-websites(website-node) ; expect vector of alists as cdr
   (when website-node
     (map 'list
          (lambda(website)
@@ -216,25 +184,25 @@ calls to this function."
              (cons rel href))) (cdr website-node))))
 
 ;; Get plain address structure from address-node in JSON structure
-(defun gcontacts-get-get-addresses(address-node)
+(defun gcontacts-get-wl-get-addresses(address-node)
   (when address-node
     (map 'list
          (lambda(address)
            (let ((location (cdr (assoc-string (cdr (assoc 'rel address))
-                                              gcontacts-get-location-schema-mapping)))
+                                              gcontacts-get-wl-location-schema-mapping)))
                  (formatted-address (cdr (assoc '$t (assoc 'gd$formattedAddress address)))))
              (when (not location) (setq location 'other))
              (cons location formatted-address)))
          (cdr address-node))))
 
 ;; Get list of group names (strings) from group membership node in JSON structure
-(defun gcontacts-get-get-groups(group-membership-node groups-id-name-alist)
+(defun gcontacts-get-wl-get-groups(group-membership-node groups-id-name-alist)
   (delete nil (mapcar (lambda(e)
                         (cdr (assoc-string (cdr (assoc 'href e)) groups-id-name-alist)))
                       (cdr group-membership-node))))
 
 ;; Get company name from organization-node in JSON structure
-(defun gcontacts-get-get-company (organization-node)
+(defun gcontacts-get-wl-get-company (organization-node)
   (when organization-node
     (setq organization-node (cdr organization-node))
     (when (> (length organization-node) 0)
@@ -247,10 +215,10 @@ calls to this function."
         groups-id-name-alist
         json
         (session (cons nil nil)))
-    (setq json (gcontacts-get-all-as-json session))
+    (setq json (gcontacts-get-wl-all-as-json session))
     (when (not json)
       (error "Could not retrieve contacts as JSON"))
-    (setq groups-id-name-alist (gcontacts-get-groups session))
+    (setq groups-id-name-alist (gcontacts-get-wl-groups session))
     (setq json (cdr (car (cdr (car json))))) ;; Untangle top structural elements of JSON object
     (loop for contactnode across json
           do
@@ -266,7 +234,7 @@ calls to this function."
                  (website-node (assoc 'gContact$website contactnode))
 
                  (name
-                  (and title-node (gcontacts-get-normalize-whitespace (cdr (assoc-string '$t title-node)))))
+                  (and title-node (gcontacts-get-wl-normalize-whitespace (cdr (assoc-string '$t title-node)))))
                  (emails
                   (and email-node (map 'list (lambda(e) (cdr (assoc-string 'address e))) (cdr email-node))))
 
@@ -275,13 +243,13 @@ calls to this function."
                  nickname birthday groups notes)
             ;; Ignore all contacts with no emails and no name:
             (when (or emails (and name (> (length name) 0)))
-              (setq phone-numbers (gcontacts-get-get-phone-numbers phone-node))
-              (setq company (gcontacts-get-get-company organization-node))
-              (setq websites (gcontacts-get-get-websites website-node))
-              (setq addresses (gcontacts-get-get-addresses address-node))
+              (setq phone-numbers (gcontacts-get-wl-get-phone-numbers phone-node))
+              (setq company (gcontacts-get-wl-get-company organization-node))
+              (setq websites (gcontacts-get-wl-get-websites website-node))
+              (setq addresses (gcontacts-get-wl-get-addresses address-node))
               (setq nickname (cdr (assoc-string '$t nickname-node)))
               (setq birthday (cdr (assoc-string 'when birthday-node)))
-              (setq groups (gcontacts-get-get-groups group-membership-node groups-id-name-alist))
+              (setq groups (gcontacts-get-wl-get-groups group-membership-node groups-id-name-alist))
               (setq notes (cdr (assoc '$t (cdr content-node))))
               (when (and nickname (> (length nickname) 0))
                 (setq contact (cons (cons 'aka nickname) contact)))
@@ -351,6 +319,5 @@ The format of Address file is as follows:
        (point-min) (point-max)
        (expand-file-name wl-address-file 0)))
     ))
-
 (provide 'gcontacts-get-wl)
-;;; gcontacts-wl.el ends here
+;;; gcontacts-wl.el ends here.

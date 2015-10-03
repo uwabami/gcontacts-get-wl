@@ -9,18 +9,22 @@ Install/Usage
 * Put `gcontacts-get-wl.el` into load-path direcotry, and byte-compile it if desired. Or use this
   [el-get recipe](https://github.com/uwabami/google-contacts-wl/blob/master/google-contacts-wl.rcp)
 
+* Create Your own Project, setup Contacts API and OAuth2 Access.
+  * Go to [Google Developer Console](https://console.developers.google.com/project)
+  * Create a project (with any name)
+  * Click on the project
+  * Click on *APIs & Auth* then *Credentials*
+  * Click on *Create New Client ID* with Application type Installed application, Installed application type Other
+  * Click on Create Client ID
+  * Record the Client ID and Client secret for setup.
+  * Under the same *APIs & Auth* menu section, select *APIs*
+  * Scroll down to *Contacts API*. Click the *Status* button to enable calendar API access to the app you created in steps 5 & 6.
+
 * Put following code into your wanderlust init file(`~/.wl`):
 
         (require 'gcontacts-get-wl)
-        ;; Optional - application login
-        ;; (setq gcontacts-get-email "Your GMail Address")
-        ;; (setq gcontacts-get-passwd "Your GMail Password")
-        ;; Optional - use auth-source
-        ;; (setq gcontacts-get-passwd-use-auth-source "somewhere")
-        ;; Optional - use Oauth2  (Required package `oauth2')
-        ;; (setq gcontacts-get-use-oauth2 t)
-        ;; (setq gcontacts-get-oauth-client-ID nil)
-        ;; (setq gcontacts-get-oauth-client-secret "Your Client Secret")
+        (setq gcontacts-get-wl-oauth-client-ID "Your Client ID"
+              gcontacts-get-wl-oauth-client-secret "Your Client Secret")
 
 * run `M-x gcontacts-update-wl-address`
 
