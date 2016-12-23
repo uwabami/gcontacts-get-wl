@@ -1,4 +1,4 @@
-;;; gcontacts-wl.el --- 1-way converter GoogleContacts to Wanderlust Address file
+;;; gcontacts-get-wl.el --- 1-way converter GoogleContacts to Wanderlust Address file
 ;; -*- mode:emacs-lisp; coding: utf-8 -*-
 ;;
 ;; Copyright(C) 2012-2015 Youhei SASAKI <uwabami@gfd-dennou.org>
@@ -61,10 +61,10 @@ some integer value higher than your total number of contacts.")
 
 ;; End of user variables.
 
-(defconst gcontacts-get-wl-oauth-scope-uris "https://www.google.com/m8/feeds/")
-(defconst gcontacts-get-wl-oauth-redirect-uri "urn:ietf:wg:oauth:2.0:oob")
-(defconst gcontacts-get-wl-oauth-auth-uri "https://accounts.google.com/o/oauth2/auth")
-(defconst gcontacts-get-wl-oauth-token-uri "https://accounts.google.com/o/oauth2/token")
+(defconst gcontacts-get-oauth-scope-uris "https://www.google.com/m8/feeds/")
+(defconst gcontacts-get-oauth-redirect-uri "urn:ietf:wg:oauth:2.0:oob")
+(defconst gcontacts-get-oauth-auth-uri "https://accounts.google.com/o/oauth2/auth")
+(defconst gcontacts-get-oauth-token-uri "https://accounts.google.com/o/oauth2/token")
 
 (defun gcontacts-get-url-retrieve (url session &optional extra-headers timeout)
   "Retrieves URL using whatever authentication that is
