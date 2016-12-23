@@ -118,26 +118,26 @@ calls to this function."
     (let ((entries (cdr (assoc 'entry (assoc 'feed data))))
           groups-alist
           entrynode)
-      (loop for entrynode across entries
-            do
-            (let ((title (cdr (assoc-string "$t" (cdr (assoc-string "title" entrynode)))))
-                  (id (cdr (assoc-string "$t" (cdr (assoc-string "id" entrynode)))))
-                  )
-              (when (string-match "^System Group:" title)
-                (cond
-                 ((string-match "^System Group: My Contacts" title)
-                  (setq title nil))
-                 ((string-match "^System Group: Friends" title)
-                  (setq title (cdr (assoc 'friends gcontacts-get-system-group-names))))
-                 ((string-match "^System Group: Family" title)
-                  (setq title (cdr (assoc 'family gcontacts-get-system-group-names))))
-                 ((string-match "^System Group: Coworkers" title)
-                  (setq title (cdr (assoc 'coworkers gcontacts-get-system-group-names)))))
+      (cl-loop for entrynode across entries
+               do
+               (let ((title (cdr (assoc-string "$t" (cdr (assoc-string "title" entrynode)))))
+                     (id (cdr (assoc-string "$t" (cdr (assoc-string "id" entrynode)))))
+                     )
+                 (when (string-match "^System Group:" title)
+                   (cond
+                    ((string-match "^System Group: My Contacts" title)
+                     (setq title nil))
+                    ((string-match "^System Group: Friends" title)
+                     (setq title (cdr (assoc 'friends gcontacts-get-system-group-names))))
+                    ((string-match "^System Group: Family" title)
+                     (setq title (cdr (assoc 'family gcontacts-get-system-group-names))))
+                    ((string-match "^System Group: Coworkers" title)
+                     (setq title (cdr (assoc 'coworkers gcontacts-get-system-group-names)))))
+                   )
+                 (when title
+                   (setq groups-alist (cons (cons id title) groups-alist)))
+                 )
                )
-              (when title
-                (setq groups-alist (cons (cons id title) groups-alist)))
-              )
-            )
       groups-alist)))
 
 (defun gcontacts-get-normalize-whitespace(s)
@@ -216,60 +216,60 @@ calls to this function."
     (unless data
       (error "Could not retrieve contacts data"))
     (setq groups-id-name-alist (gcontacts-get-groups session))
-    (loop for contactnode across (cdr (assoc 'entry (assoc 'feed data)))
-          do
-          (let* ((email-node (assoc 'gd$email contactnode))
-                 (title-node (assoc 'title contactnode)) ; consider using gd$fullName node instead
-                 (address-node (assoc 'gd$structuredPostalAddress contactnode))
-                 (phone-node (assoc 'gd$phoneNumber contactnode))
-                 (organization-node (assoc 'gd$organization contactnode))
-                 (nickname-node (assoc 'gContact$nickname contactnode))
-                 (birthday-node (assoc 'gContact$birthday contactnode))
-                 (group-membership-node (assoc 'gContact$groupMembershipInfo contactnode))
-                 (content-node (assoc 'content contactnode)) ; contact notes-field
-                 (website-node (assoc 'gContact$website contactnode))
-                 (name
-                  (and title-node (gcontacts-get-normalize-whitespace (cdr (assoc-string '$t title-node)))))
-                 (emails
-                  (and email-node (map 'list (lambda(e) (cdr (assoc-string 'address e))) (cdr email-node))))
-                 contact addresses
-                 phone-numbers company websites
-                 nickname birthday groups notes)
-            ;; Ignore all contacts with no emails and no name:
-            (when (or emails (and name (> (length name) 0)))
-              (setq phone-numbers (gcontacts-get-get-phone-numbers phone-node))
-              (setq company (gcontacts-get-get-company organization-node))
-              (setq websites (gcontacts-get-get-websites website-node))
-              (setq addresses (gcontacts-get-get-addresses address-node))
-              (setq nickname (cdr (assoc-string '$t nickname-node)))
-              (setq birthday (cdr (assoc-string 'when birthday-node)))
-              (setq groups (gcontacts-get-get-groups group-membership-node groups-id-name-alist))
-              (setq notes (cdr (assoc '$t (cdr content-node))))
-              (when (and nickname (> (length nickname) 0))
-                (setq contact (cons (cons 'aka nickname) contact)))
-              (when birthday
-                (setq contact (cons (cons 'birthday birthday) contact)))
-              (when notes
-                ;; HTC Android phones store additional tagged metadata in the notes field, strip that away.
-                (setq notes (replace-regexp-in-string "<HTCData>\\(.\\|\n\\)*?</HTCData>" "" notes))
-                (setq notes (replace-regexp-in-string "\\`\\( \\|\n\\|\t\\)+\\|\\( \\|\n\\|\t\\)+\\'" "" notes))
-                (when (> (length notes) 0)
-                  (setq contact (cons (cons 'notes notes) contact))))
-              (when addresses
-                (setq contact (cons (cons 'formatted-addresses addresses) contact)))
-              (when phone-numbers
-                (setq contact (cons (cons 'phone-numbers phone-numbers) contact)))
-              (when company
-                (setq contact (cons (cons 'company company) contact)))
-              (when websites
-                (setq contact (cons (cons 'websites websites) contact)))
-              (when groups
-                (setq contact (cons (cons 'groups (list groups)) contact)))
-              (when emails
-                (setq contact (cons (cons 'emails (list emails)) contact)))
-              (when (and name (> (length name) 0))
-                (setq contact (cons (cons 'name name) contact)))
-              (setq google-contacts-alist (cons contact google-contacts-alist)))))
+    (cl-loop for contactnode across (cdr (assoc 'entry (assoc 'feed data)))
+             do
+             (let* ((email-node (assoc 'gd$email contactnode))
+                    (title-node (assoc 'title contactnode)) ; consider using gd$fullName node instead
+                    (address-node (assoc 'gd$structuredPostalAddress contactnode))
+                    (phone-node (assoc 'gd$phoneNumber contactnode))
+                    (organization-node (assoc 'gd$organization contactnode))
+                    (nickname-node (assoc 'gContact$nickname contactnode))
+                    (birthday-node (assoc 'gContact$birthday contactnode))
+                    (group-membership-node (assoc 'gContact$groupMembershipInfo contactnode))
+                    (content-node (assoc 'content contactnode)) ; contact notes-field
+                    (website-node (assoc 'gContact$website contactnode))
+                    (name
+                     (and title-node (gcontacts-get-normalize-whitespace (cdr (assoc-string '$t title-node)))))
+                    (emails
+                     (and email-node (map 'list (lambda(e) (cdr (assoc-string 'address e))) (cdr email-node))))
+                    contact addresses
+                    phone-numbers company websites
+                    nickname birthday groups notes)
+               ;; Ignore all contacts with no emails and no name:
+               (when (or emails (and name (> (length name) 0)))
+                 (setq phone-numbers (gcontacts-get-get-phone-numbers phone-node))
+                 (setq company (gcontacts-get-get-company organization-node))
+                 (setq websites (gcontacts-get-get-websites website-node))
+                 (setq addresses (gcontacts-get-get-addresses address-node))
+                 (setq nickname (cdr (assoc-string '$t nickname-node)))
+                 (setq birthday (cdr (assoc-string 'when birthday-node)))
+                 (setq groups (gcontacts-get-get-groups group-membership-node groups-id-name-alist))
+                 (setq notes (cdr (assoc '$t (cdr content-node))))
+                 (when (and nickname (> (length nickname) 0))
+                   (setq contact (cons (cons 'aka nickname) contact)))
+                 (when birthday
+                   (setq contact (cons (cons 'birthday birthday) contact)))
+                 (when notes
+                   ;; HTC Android phones store additional tagged metadata in the notes field, strip that away.
+                   (setq notes (replace-regexp-in-string "<HTCData>\\(.\\|\n\\)*?</HTCData>" "" notes))
+                   (setq notes (replace-regexp-in-string "\\`\\( \\|\n\\|\t\\)+\\|\\( \\|\n\\|\t\\)+\\'" "" notes))
+                   (when (> (length notes) 0)
+                     (setq contact (cons (cons 'notes notes) contact))))
+                 (when addresses
+                   (setq contact (cons (cons 'formatted-addresses addresses) contact)))
+                 (when phone-numbers
+                   (setq contact (cons (cons 'phone-numbers phone-numbers) contact)))
+                 (when company
+                   (setq contact (cons (cons 'company company) contact)))
+                 (when websites
+                   (setq contact (cons (cons 'websites websites) contact)))
+                 (when groups
+                   (setq contact (cons (cons 'groups (list groups)) contact)))
+                 (when emails
+                   (setq contact (cons (cons 'emails (list emails)) contact)))
+                 (when (and name (> (length name) 0))
+                   (setq contact (cons (cons 'name name) contact)))
+                 (setq google-contacts-alist (cons contact google-contacts-alist)))))
     google-contacts-alist))
 
 ;;;###autoload
