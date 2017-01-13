@@ -314,4 +314,4 @@ The format of Address file is as follows:
     ))
 
 (provide 'gcontacts-get-wl)
-;;; gcontacts-wl.el ends here.
+;;; gcontacts-get-wl.el ends here.
